@@ -40,9 +40,14 @@ class Application(ttk.Frame):
         
         #get user inputs
         input_tickers = self.control_frame.get_tickers()
-        
+        backtest_params = self.control_frame.get_backtest_params()
+        time_period = backtest_params[0]
+        starting_capital = backtest_params[1]
+        trading_fees = backtest_params[2]
+
+
         #data.py
-        price_data = fetch_data(input_tickers)
+        price_data = fetch_data(input_tickers, time_period)
 
         #analysis.py
         processed_data, hedge_ratio = calculate_spread(price_data)
@@ -52,7 +57,12 @@ class Application(ttk.Frame):
             signals_data = create_signals(processed_data)
             
             #run backtester
-            equity_curve = run_backtest(signals_data, hedge_ratio)
+            equity_curve = run_backtest(
+                signals_data,
+                hedge_ratio,
+                starting_capital,
+                trading_fees
+                )
 
             #get KPMS
             performance_data = create_report(equity_curve)

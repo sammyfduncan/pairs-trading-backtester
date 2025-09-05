@@ -6,11 +6,13 @@ import numpy as np
 
 def run_backtest(
         price_data: pd.DataFrame,
-        hedge_ratio: float
+        hedge_ratio: float,
+        starting_capital: str,
+        trading_fees: str
         ) -> pd.Series:
     
     #define starting conditions of portfolio
-    initial_capital = 100000.0
+    initial_capital = starting_capital
     cash = initial_capital
     position = 0 #flat
     #stores value of portfolio at end of each day
@@ -19,8 +21,8 @@ def run_backtest(
     asset1_shares = 0
     asset2_shares = 0
 
-    #transaction cost, change to update dynamically 
-    cost_pct = 0.001
+    #transaction cost 
+    cost_pct = trading_fees
 
 
     #simulation loop

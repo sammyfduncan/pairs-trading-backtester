@@ -4,7 +4,10 @@ import numpy as np
 
 #Acquires relevant data and prepares it into a DataFrame. 
 
-def fetch_data(user_tickers: tuple):
+def fetch_data(
+        user_tickers: tuple,
+        time_period: str
+        ) -> pd.DataFrame:
 
     #first get our tickers
     ticker1, ticker2 = user_tickers[0], user_tickers[1]
@@ -14,7 +17,7 @@ def fetch_data(user_tickers: tuple):
     #period initially set to 5y
     data = yf.download(
         tickers=[ticker1, ticker2],
-        period='15y'
+        period=time_period
     )
 
     #isolate closing price data
