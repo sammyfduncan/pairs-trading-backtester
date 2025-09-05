@@ -44,10 +44,36 @@ class Application(ttk.Frame):
         time_period = backtest_params[0]
         starting_capital = backtest_params[1]
         trading_fees = backtest_params[2]
+        #default if user doesn't enter anything
+        default_capital = 100000.0
+        default_fees = 0.001
+        default_period = '10y'
 
+        try:
+            if starting_capital.strip():
+                initial_capital = int(float(starting_capital))
+            else:
+                initial_capital = default_capital
+        except ValueError:
+            print(f"Invalid capital input {starting_capital}")
+            initial_capital = default_capital
+    
+        try:
+            if trading_fees.strip():
+                initial_fees = int(float(trading_fees))
+            else:
+                initial_fees = default_fees
+        except ValueError:
+            print(f"Invalid fee input {trading_fees}")
+            initial_fees = default_fees
+    
+        if time_period:
+            initial_period = time_period
+        else:
+            initial_period = default_period
 
         #data.py
-        price_data = fetch_data(input_tickers, time_period)
+        price_data = fetch_data(input_tickers, initial_period)
 
         #analysis.py
         processed_data, hedge_ratio = calculate_spread(price_data)
@@ -60,8 +86,8 @@ class Application(ttk.Frame):
             equity_curve = run_backtest(
                 signals_data,
                 hedge_ratio,
-                starting_capital,
-                trading_fees
+                initial_capital,
+                initial_fees
                 )
 
             #get KPMS

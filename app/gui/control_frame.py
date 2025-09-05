@@ -22,8 +22,8 @@ class ControlFrame(ttk.Frame):
         widgets_frame.columnconfigure(1, weight=1)
 
         tickers_frame = ttk.Frame(widgets_frame)
-        tickers_frame.grid(column=0)
-
+        tickers_frame.grid(row=0, column=0, sticky="nsew")
+        tickers_frame.columnconfigure(1, weight=1)
         #add widgets
         #tickers
         ticker_1_label = ttk.Label(tickers_frame, text="Ticker 1:")
@@ -48,11 +48,12 @@ class ControlFrame(ttk.Frame):
             row=1, column=1,
             padx=5, pady=5, sticky="ew"
         )
-        tickers_frame.columnconfigure(0, weight=1)
+        
 
         #other options
-        params_frame = ttk.Label(widgets_frame)
-        params_frame.grid(column=1)
+        params_frame = ttk.Frame(widgets_frame)
+        params_frame.grid(row=0, column=1, sticky="nsew")
+        params_frame.columnconfigure(1, weight=1)
 
         self.time_period_entry = ttk.Combobox(
             params_frame,
@@ -73,22 +74,24 @@ class ControlFrame(ttk.Frame):
             padx=5, pady=5
         )
         capital_label.grid(
-            row=1, column=1, sticky='ew',
+            row=1, column=0, sticky='w',
             padx=5, pady=5
         )
         self.capital_entry.grid(
             row=1, column=1, sticky='ew',
             padx=5, pady=5
         )
+        self.capital_entry.insert(0, "100000")
         fees_label.grid(
-            row=2, column=1, sticky='ew',
+            row=2, column=0, sticky='w',
             padx=5, pady=5
         )
         self.fees_entry.grid(
             row=2, column=1, sticky='ew',
             padx=5, pady=5
         )
-        params_frame.columnconfigure(1, weight=1)
+        self.fees_entry.insert(0, "0.001")
+        
 
         #run button
         self.run_button = ttk.Button(

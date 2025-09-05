@@ -7,8 +7,8 @@ import numpy as np
 def run_backtest(
         price_data: pd.DataFrame,
         hedge_ratio: float,
-        starting_capital: str,
-        trading_fees: str
+        starting_capital,
+        trading_fees
         ) -> pd.Series:
     
     #define starting conditions of portfolio
