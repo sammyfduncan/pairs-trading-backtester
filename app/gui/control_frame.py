@@ -7,8 +7,9 @@ class ControlFrame(ttk.Frame):
     #constructor
     def __init__(self, master, run_callback):
         super().__init__(master)
-        self.add_widgets()
         self.run_callback = run_callback
+        self.add_widgets()
+        
 
     #create widgets
     def add_widgets(self):
@@ -21,9 +22,9 @@ class ControlFrame(ttk.Frame):
 
         #add widgets
         #tickers
-        ticker_1_label = ttk.Label(text="Ticker 1:")
+        ticker_1_label = ttk.Label(widgets_frame, text="Ticker 1:")
         self.ticker_1_entry = ttk.Entry(widgets_frame)
-        ticker_2_label = ttk.Label(text="Ticker 2:")
+        ticker_2_label = ttk.Label(widgets_frame, text="Ticker 2:")
         self.ticker_2_entry = ttk.Entry(widgets_frame)
 
         #geometry 
@@ -46,6 +47,7 @@ class ControlFrame(ttk.Frame):
 
         #run button
         self.run_button = ttk.Button(
+            widgets_frame,
             text="Run Backtest",
             command=self.run_callback
         )

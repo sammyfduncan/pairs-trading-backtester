@@ -37,18 +37,5 @@ def fetch_data(user_tickers: tuple):
     return price_data
 
 
-def get_stock_choice() -> tuple:
-    
-    ticker1: str = input(
-        "Enter the first stock/ticker symbol:\n"
-        ).upper()
-
-    ticker2: str = input(
-        "Enter the second stock/ticker symbol:\n"
-        ).upper()
-    
-    return (ticker1, ticker2)
-
-
 
 

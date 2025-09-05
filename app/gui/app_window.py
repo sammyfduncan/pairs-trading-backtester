@@ -1,4 +1,4 @@
-from tkinter import *
+import tkinter as tk 
 from tkinter import ttk
 from .control_frame import ControlFrame
 from .plot_frame import PlotFrame
@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 #App class representing main window
 
-class Application(Frame):
+class Application(ttk.Frame):
 
     def __init__(self, master):
         #call parent constructor
@@ -36,7 +36,7 @@ class Application(Frame):
 
     def handle_run_backtest(self):
         #hide run button
-        ControlFrame.show_button(False)
+        self.control_frame.show_button(False)
         
         #get user inputs
         input_tickers = self.control_frame.get_tickers()
@@ -61,7 +61,7 @@ class Application(Frame):
             self.plot_frame.plot_graph(performance_data)
 
             #show button
-            ControlFrame.show_button(True)
+            self.control_frame.show_button(True)
 
 
 

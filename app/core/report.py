@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 #Performance analysis reporting
 
 #Takes backtested trades and plots report
-def create_report(equity_curve: pd.Series):
+def create_report(equity_curve: pd.Series) -> tuple:
     #calculate KPMs
 
     #total return:
@@ -39,17 +39,6 @@ def create_report(equity_curve: pd.Series):
         f"Max Drawdown: {maximum_drawdown * 100:.2f}%"
     )
 
-    #create visualisations
-    #plot equity curve
-    fig, ax = plt.subplots()
-    ax.plot(equity_curve)
-    ax.set_title(f"Equity Curve\n{report_str}")
-    ax.set_xlabel("Date")
-    ax.set_ylabel("Portfolio Value")
-    ax.grid(True)
-    
-    #show the plot
-    plt.show()
-
-
+    #0-Report Str, 1-Equity curve
+    return (report_str, equity_curve)
 
