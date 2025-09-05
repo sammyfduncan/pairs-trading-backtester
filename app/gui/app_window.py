@@ -1,11 +1,12 @@
 from tkinter import *
 from tkinter import ttk
 from .control_frame import ControlFrame
-from core.data import get_stock_choice, fetch_data
-from core.analysis import calculate_spread
-from core.signals import create_signals
-from core.backtester import run_backtest
-from core.report import create_report
+from .plot_frame import PlotFrame
+from app.core.data import fetch_data
+from app.core.analysis import calculate_spread
+from app.core.signals import create_signals
+from app.core.backtester import run_backtest
+from app.core.report import create_report
 import matplotlib.pyplot as plt
 
 
@@ -18,16 +19,25 @@ class Application(Frame):
         super().__init__(master)
         self.master.title("Pairs Trading Backtester")
         #create component frames
-        self.control_frame = ControlFrame(
-            self, run_callback=self.handle_run_backtest)
+        self.control_frame = ControlFrame(self, run_callback=self.handle_run_backtest)
+
+        self.plot_frame = PlotFrame(self)
 
         self.control_frame.pack(
-            side="top", fill="x",
-            padyx=10, pady=10)
+            side="top", fill="x", expand=False,
+            padx=10, pady=5)
         
+        self.plot_frame.pack(
+            side="top", fill="both", expand=True
+        )
 
+        #make visible
+        self.pack(fill="both", expand=True)
 
     def handle_run_backtest(self):
+        #hide run button
+        ControlFrame.show_button(False)
+        
         #get user inputs
         input_tickers = self.control_frame.get_tickers()
         
@@ -45,8 +55,15 @@ class Application(Frame):
             equity_curve = run_backtest(signals_data, hedge_ratio)
 
             #get KPMS
-            create_report(equity_curve)
-            
+            performance_data = create_report(equity_curve)
+
+            #plot graph
+            self.plot_frame.plot_graph(performance_data)
+
+            #show button
+            ControlFrame.show_button(True)
+
+
 
 
 
