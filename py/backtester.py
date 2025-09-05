@@ -1,12 +1,13 @@
-import pandas, numpy
+import pandas as pd
+import numpy as np
 
 #Backtesting engine
 #iterates through data and 'executes' hypothetical trades
 
 def run_backtest(
-        price_data: pandas.DataFrame,
+        price_data: pd.DataFrame,
         hedge_ratio: float
-        ) -> pandas.Series:
+        ) -> pd.Series:
     
     #define starting conditions of portfolio
     initial_capital = 100000.0
@@ -65,8 +66,8 @@ def run_backtest(
         elif position == 0 and target_pos == -1:
             #signal for opening short pos, reverse of above
 
-            nr_asset1_shares = nr_asset2_shares * hedge_ratio
             nr_asset2_shares = 10000 / row['asset2']
+            nr_asset1_shares = nr_asset2_shares * hedge_ratio
 
             asset1_shares = -nr_asset1_shares
             asset2_shares = nr_asset2_shares
@@ -112,6 +113,6 @@ def run_backtest(
             position = 0
     
     #convert equity list into series curve
-    equity_curve = pandas.Series(equity_curve, index=price_data.index)
+    equity_curve = pd.Series(data=equity_list, index=price_data.index)
 
     return equity_curve

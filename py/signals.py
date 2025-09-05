@@ -1,10 +1,11 @@
-import pandas, numpy
+import pandas as pd
+import numpy as np
 #Adds trading signals to the DataFrame. 
 
 #Takes analysed df and adds new cols with Z-score and signals
 def create_signals(
-        price_data: pandas.DataFrame
-        ) -> pandas.DataFrame:
+        price_data: pd.DataFrame
+        ) -> pd.DataFrame:
     
     #define signal thresholds
     entry_threshold = 2.0
@@ -27,10 +28,10 @@ def create_signals(
     #using numpy where to set value
     #placeholders: -1 == short, 1 == long, 0 == flat 
 
-    price_data['position'] = numpy.where(
+    price_data['position'] = np.where(
         zscore > entry_threshold,
         -1, #value if above true
-        numpy.where(
+        np.where(
             zscore < -entry_threshold,
             1, #value if above true
             0 #value if false

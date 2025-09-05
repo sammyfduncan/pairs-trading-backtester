@@ -1,11 +1,14 @@
 from statsmodels.tsa.stattools import coint
-import numpy, pandas
+import numpy as np
+import pandas as pd
 
 
 #Mathematically checks for cointegration between given pairs
 #If proven, calculates spread
 
-def calculate_spread(price_data: pandas.DataFrame):
+def calculate_spread(
+        price_data: pd.DataFrame
+        ):
 
     #first, check for cointegration using statsmodels
     tmp = coint(
@@ -17,15 +20,13 @@ def calculate_spread(price_data: pandas.DataFrame):
     
     #if cointegrated, proceed, else halt
     #initial value set to 0,05
-    if p_value < 0.05:
-        pass
-    else:
+    if p_value >= 0.05:
         print('Pair is not cointegrated.')
-        return None
+        return (None, None)
 
 
     #calculate hedge ratio by performing linear regression
-    tmp = numpy.polyfit(
+    tmp = np.polyfit(
         price_data['asset2'],
         price_data['asset1'],
         deg=1
@@ -40,4 +41,4 @@ def calculate_spread(price_data: pandas.DataFrame):
     #assign to a new col
     price_data = price_data.assign(Spread=spread)
     
-    return price_data
+    return (price_data, hedge_ratio)
