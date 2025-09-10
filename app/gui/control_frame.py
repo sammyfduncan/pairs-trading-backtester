@@ -5,9 +5,10 @@ from tkinter import ttk
 
 class ControlFrame(ttk.Frame):
     #constructor
-    def __init__(self, master, run_callback):
+    def __init__(self, master, run_callback, optimise_callback):
         super().__init__(master)
         self.run_callback = run_callback
+        self.optimise_callback = optimise_callback
         self.add_widgets()
         
 
@@ -93,13 +94,25 @@ class ControlFrame(ttk.Frame):
         self.fees_entry.insert(0, "0.001")
         
 
-        #run button
+        #buttons
+        button_frame = ttk.Frame(widgets_frame)
+        button_frame.grid(
+            row=1, columnspan=2, pady=10
+        )
+
         self.run_button = ttk.Button(
-            widgets_frame,
+            button_frame,
             text="Run Backtest",
             command=self.run_callback
         )
-        self.run_button.grid(row=1, columnspan=2, pady=10)
+        self.run_button.pack(side="left", padx=5)
+
+        self.optimise_button = ttk.Button(
+            button_frame,
+            text="Run Optimisation",
+            command=self.optimise_callback
+        )
+        self.optimise_button.pack(side="left", padx=5)
 
     
 
@@ -115,8 +128,10 @@ class ControlFrame(ttk.Frame):
     def show_button(self, state: bool):
         if state is False:
             self.run_button.config(state="disabled")
+            self.optimise_button.config(state="disabled")
         elif state is True:
             self.run_button.config(state="normal")
+            self.optimise_button.config(state="normal")
     
     #get backtest params input
     def get_backtest_params(self) -> tuple:
