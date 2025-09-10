@@ -7,6 +7,7 @@ from app.core.analysis import calculate_spread
 from app.core.signals import create_signals
 from app.core.backtester import run_backtest
 from app.core.report import create_report
+from app.core.pipeline import run_pipeline
 import matplotlib.pyplot as plt
 
 
@@ -44,14 +45,18 @@ class Application(ttk.Frame):
         time_period = backtest_params[0]
         starting_capital = backtest_params[1]
         trading_fees = backtest_params[2]
+
         #default if user doesn't enter anything
         default_capital = 100000.0
         default_fees = 0.001
         default_period = '10y'
 
+        default_z_window = 60
+        default_z_threshold = 2.0
+
         try:
             if starting_capital.strip():
-                initial_capital = int(float(starting_capital))
+                initial_capital = float(starting_capital)
             else:
                 initial_capital = default_capital
         except ValueError:
@@ -72,32 +77,22 @@ class Application(ttk.Frame):
         else:
             initial_period = default_period
 
-        #data.py
-        price_data = fetch_data(input_tickers, initial_period)
+        #call pipeliine function
+        performance_data = run_pipeline(
+            tickers=input_tickers,
+            time_period=initial_period,
+            initial_capital=initial_capital,
+            trading_fees=initial_fees,
+            z_window=default_z_window,
+            z_threshold=default_z_threshold
+        )
 
-        #analysis.py
-        processed_data, hedge_ratio = calculate_spread(price_data)
-   
-        if processed_data is not None:
-            #add signals to DataFrame
-            signals_data = create_signals(processed_data)
-            
-            #run backtester
-            equity_curve = run_backtest(
-                signals_data,
-                hedge_ratio,
-                initial_capital,
-                initial_fees
-                )
-
-            #get KPMS
-            performance_data = create_report(equity_curve)
-
+        if performance_data and performance_data[0] is not None:
             #plot graph
             self.plot_frame.plot_graph(performance_data)
 
-            #show button
-            self.control_frame.show_button(True)
+        #show button
+        self.control_frame.show_button(True)
 
 
 
