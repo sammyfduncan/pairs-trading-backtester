@@ -1,7 +1,9 @@
 import numpy as np
+import pandas as pd
 from .pipeline import run_pipeline
 #Allows backtester to loop through different parameter sets
 
+#runs datasets through the pipeline to test parameter combinations
 def run_optimiser(
     tickers: str,
     time_period: str,
@@ -44,4 +46,34 @@ def run_optimiser(
                 kpm_dict['z_window'] = w
                 kpm_dict['z_threshold'] = t
                 results_list.append(kpm_dict)
+
+    #analyse all results and return the most optimal
+    #for now, set to test for sharpe ratio
+    optimal_params = analyse_results(
+        results_list=results_list,
+        optimise_for='sharpe_ratio'
+    )
+
+    return optimal_params
+
+
+
+#Analyses list of backtest results to find best performing params
+#Arg optimise_test: the metric to optimise for
+def analyse_results(
+        results_list: list,
+        optimise_for: str
+) -> pd.Series | pd.DataFrame:
+    if not results_list:
+        print("No backtest was run")
+        return None
+    
+    #convert list of dicts into pandas Df
+    results_df = pd.DataFrame(results_list)
+
+    #find row w/ max value for chosen metric
+    optimal_run_index = results_df[optimise_for].idxmax()
+    optimal_run = results_df.loc[optimal_run_index]
+
+    return optimal_run
 
