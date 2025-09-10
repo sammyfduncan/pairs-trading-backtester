@@ -1,10 +1,14 @@
 import tkinter as tk 
 from tkinter import ttk
+import matplotlib.pyplot as plt
+import webbrowser
+import os
 from .control_frame import ControlFrame
 from .plot_frame import PlotFrame
 from app.core.pipeline import run_pipeline
 from app.core.optimiser import run_optimiser
-import matplotlib.pyplot as plt
+from app.core.report import create_detailed_report
+
 
 
 #App class representing main window
@@ -155,7 +159,7 @@ class Application(ttk.Frame):
         #if result was found, run pipeline again with it
         if optimal_params is not None:
             optimal_window = int(optimal_params['z_window'])
-            optimal_threshold = optimal_params['z-threshold']
+            optimal_threshold = optimal_params['z_threshold']
 
         #rerun backtest w/ optimal params to get equity curve
         kpm_dict, equity_curve = run_pipeline(
@@ -175,6 +179,12 @@ class Application(ttk.Frame):
             )
             #plot graph
             self.plot_frame.plot_graph((report_str, equity_curve))
+
+            #generate detailed report and open in browser
+            title = f"Report for pairs: {input_tickers[0]} & {input_tickers[1]}"
+            create_detailed_report(equity_curve, title)
+            webbrowser.open('file://' + os.path.realpath('report.html'))
+
 
         self.control_frame.show_button(True)
 

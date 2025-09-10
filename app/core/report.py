@@ -1,10 +1,11 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import quantstats
 
 #Performance analysis reporting
 
-#Takes backtested trades and plots report
+#Takes backtested trades and returns report
 def create_report(equity_curve: pd.Series) -> tuple:
     #calculate KPMs
 
@@ -42,3 +43,20 @@ def create_report(equity_curve: pd.Series) -> tuple:
     #0-Report Dict, 1-Equity curve
     return (report_dict, equity_curve)
 
+#Takes trades and generates a full quantitative tear sheet saved as an HTML file
+def create_detailed_report(
+        equity_curve: pd.Series,
+        strategy_title: str
+):
+    #calculate daily returns in the form of percentage returns
+    daily_returns = equity_curve.pct_change().dropna()
+
+    #generate and save report
+    quantstats.reports.html(
+        returns=daily_returns,
+        title=strategy_title,
+        output='report.html'
+    )
+
+
+    
