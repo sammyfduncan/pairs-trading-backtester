@@ -4,20 +4,19 @@ import numpy as np
 
 #Takes analysed df and adds new cols with Z-score and signals
 def create_signals(
-        price_data: pd.DataFrame
+        price_data: pd.DataFrame,
+        z_window: int,
+        z_threshold: float
         ) -> pd.DataFrame:
     
-    #define signal thresholds
-    entry_threshold = 2.0
-
 
     #calculate Z-score:
     #find rolling mean/std deviation of spread col
-    data_series = price_data['Spread'].rolling(window=60)
+    data_series = price_data['Spread'].rolling(window=z_window)
     mean = data_series.mean()
     std_dev = data_series.std()
 
-    #z-score formuila
+    #z-score formula
     zscore = (price_data['Spread'] - mean) / std_dev
 
     #add it to a new col
@@ -25,14 +24,12 @@ def create_signals(
 
 
     #create position signals
-    #using numpy where to set value
     #placeholders: -1 == short, 1 == long, 0 == flat 
-
     price_data['position'] = np.where(
-        zscore > entry_threshold,
+        zscore > z_threshold,
         -1, #value if above true
         np.where(
-            zscore < -entry_threshold,
+            zscore < -z_threshold,
             1, #value if above true
             0 #value if false
         )

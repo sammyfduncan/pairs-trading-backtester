@@ -32,13 +32,13 @@ def create_report(equity_curve: pd.Series) -> tuple:
     #find worst day
     maximum_drawdown = daily_drawdown.min()
 
-   #display KPMS by formatting into str
-    report_str = (
-        f"Total Return: {total_return_pct:.2f}% | "
-        f"Sharpe Ratio: {sharpe_ratio:.2f} | "
-        f"Max Drawdown: {maximum_drawdown * 100:.2f}%"
-    )
+   #format KPMs into a dictionary
+    report_dict = {
+        'total_return': total_return_pct,
+        'sharpe_ratio': sharpe_ratio,
+        'max_drawdown': maximum_drawdown * 100
+    }
 
-    #0-Report Str, 1-Equity curve
-    return (report_str, equity_curve)
+    #0-Report Dict, 1-Equity curve
+    return (report_dict, equity_curve)
 
