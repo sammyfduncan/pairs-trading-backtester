@@ -15,10 +15,15 @@ def fetch_data(
     #download data from yfinance
     #data var is a DataFrame
     #period initially set to 5y
-    data = yf.download(
-        tickers=[ticker1, ticker2],
-        period=time_period
-    )
+    try:
+        data = yf.download(
+            tickers=[ticker1, ticker2],
+            period=time_period
+        )
+    except Exception as e:
+        print(f"Yfinance encountered an error: {e}");
+        return None
+    
 
     #isolate closing price data
     price_data = data['Close'].copy()

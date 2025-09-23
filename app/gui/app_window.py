@@ -1,5 +1,6 @@
 import tkinter as tk 
 from tkinter import ttk
+import tkinter.messagebox as messagebox
 import matplotlib.pyplot as plt
 import webbrowser
 import os
@@ -43,150 +44,164 @@ class Application(ttk.Frame):
         #hide run button
         self.control_frame.show_button(False)
         
-        #get user inputs
-        input_tickers = self.control_frame.get_tickers()
-        backtest_params = self.control_frame.get_backtest_params()
-        time_period = backtest_params[0]
-        starting_capital = backtest_params[1]
-        trading_fees = backtest_params[2]
-
-        #default if user doesn't enter anything
-        default_capital = 100000.0
-        default_fees = 0.001
-        default_period = '10y'
-
-        default_z_window = 60
-        default_z_threshold = 2.0
-
         try:
-            if starting_capital.strip():
-                initial_capital = float(starting_capital)
-            else:
+            #get user inputs
+            input_tickers = self.control_frame.get_tickers()
+            backtest_params = self.control_frame.get_backtest_params()
+            time_period = backtest_params[0]
+            starting_capital = backtest_params[1]
+            trading_fees = backtest_params[2]
+
+            #default if user doesn't enter anything
+            default_capital = 100000.0
+            default_fees = 0.001
+            default_period = '10y'
+
+            default_z_window = 60
+            default_z_threshold = 2.0
+
+            try:
+                if starting_capital.strip():
+                    initial_capital = float(starting_capital)
+                else:
+                    initial_capital = default_capital
+            except ValueError:
+                print(f"Invalid capital input {starting_capital}")
                 initial_capital = default_capital
-        except ValueError:
-            print(f"Invalid capital input {starting_capital}")
-            initial_capital = default_capital
-    
-        try:
-            if trading_fees.strip():
-                initial_fees = int(float(trading_fees))
-            else:
+        
+            try:
+                if trading_fees.strip():
+                    initial_fees = int(float(trading_fees))
+                else:
+                    initial_fees = default_fees
+            except ValueError:
+                print(f"Invalid fee input {trading_fees}")
                 initial_fees = default_fees
-        except ValueError:
-            print(f"Invalid fee input {trading_fees}")
-            initial_fees = default_fees
-    
-        if time_period:
-            initial_period = time_period
-        else:
-            initial_period = default_period
+        
+            if time_period:
+                initial_period = time_period
+            else:
+                initial_period = default_period
 
-        #call pipeliine function
-        performance_data = run_pipeline(
-            tickers=input_tickers,
-            time_period=initial_period,
-            initial_capital=initial_capital,
-            trading_fees=initial_fees,
-            z_window=default_z_window,
-            z_threshold=default_z_threshold
-        )
-
-        kpm_dict = performance_data[0]
-        equity_curve = performance_data[1]
-
-        if kpm_dict and equity_curve is not None:
-            #format dict into a str
-            report_str = (
-                f"Total Return: {kpm_dict['total_return']:.2f}% | "
-                f"Sharpe Ratio: {kpm_dict['sharpe_ratio']:.2f} | "
-                f"Max Drawdown: {kpm_dict['max_drawdown']:.2f}%"
+            #call pipeliine function
+            performance_data = run_pipeline(
+                tickers=input_tickers,
+                time_period=initial_period,
+                initial_capital=initial_capital,
+                trading_fees=initial_fees,
+                z_window=default_z_window,
+                z_threshold=default_z_threshold
             )
-            #call plot function passing above data as tuple
-            self.plot_frame.plot_graph((report_str, equity_curve))
 
-        #show button
-        self.control_frame.show_button(True)
+            #if pipeline fails, it returns None
+            if performance_data[0] is None:
+                messagebox.showerror(
+                    "Backtest failed",
+                    "This may be due to invalid tickers, no pair cointegration, or no data for the time period."
+                )
+
+            kpm_dict = performance_data[0]
+            equity_curve = performance_data[1]
+
+            if kpm_dict and equity_curve is not None:
+                #format dict into a str
+                report_str = (
+                    f"Total Return: {kpm_dict['total_return']:.2f}% | "
+                    f"Sharpe Ratio: {kpm_dict['sharpe_ratio']:.2f} | "
+                    f"Max Drawdown: {kpm_dict['max_drawdown']:.2f}%"
+                )
+                #call plot function passing above data as tuple
+                self.plot_frame.plot_graph((report_str, equity_curve))
+
+        finally:
+            #show button
+            self.control_frame.show_button(True)
 
     #handles calls to optimisation function
     def handle_run_optimisation(self):
         #disable buttons
         self.control_frame.show_button(False)
-
-        #get user inputs
-        input_tickers = self.control_frame.get_tickers()
-        backtest_params = self.control_frame.get_backtest_params()
-        time_period = backtest_params[0]
-        starting_capital = backtest_params[1]
-        trading_fees = backtest_params[2]
-
-        #default
-        default_capital = 100000.0
-        default_fees = 0.001
-        default_period = '10y'
-
         try:
-            if starting_capital.strip():
-                initial_capital = float(starting_capital)
-            else:
+            #get user inputs
+            input_tickers = self.control_frame.get_tickers()
+            backtest_params = self.control_frame.get_backtest_params()
+            time_period = backtest_params[0]
+            starting_capital = backtest_params[1]
+            trading_fees = backtest_params[2]
+
+            #default
+            default_capital = 100000.0
+            default_fees = 0.001
+            default_period = '10y'
+
+            try:
+                if starting_capital.strip():
+                    initial_capital = float(starting_capital)
+                else:
+                    initial_capital = default_capital
+            except ValueError:
+                print(f"Invalid capital input {starting_capital}")
                 initial_capital = default_capital
-        except ValueError:
-            print(f"Invalid capital input {starting_capital}")
-            initial_capital = default_capital
-    
-        try:
-            if trading_fees.strip():
-                initial_fees = int(float(trading_fees))
-            else:
+        
+            try:
+                if trading_fees.strip():
+                    initial_fees = int(float(trading_fees))
+                else:
+                    initial_fees = default_fees
+            except ValueError:
+                print(f"Invalid fee input {trading_fees}")
                 initial_fees = default_fees
-        except ValueError:
-            print(f"Invalid fee input {trading_fees}")
-            initial_fees = default_fees
-    
-        if time_period:
-            initial_period = time_period
-        else:
-            initial_period = default_period
+        
+            if time_period:
+                initial_period = time_period
+            else:
+                initial_period = default_period
 
 
-        #call optimisation engine
-        optimal_params = run_optimiser(
-            tickers=input_tickers,
-            time_period=initial_period,
-            initial_capital=initial_capital,
-            trading_fees=initial_fees
-        )
+            #call optimisation engine
+            optimal_params = run_optimiser(
+                tickers=input_tickers,
+                time_period=initial_period,
+                initial_capital=initial_capital,
+                trading_fees=initial_fees
+            )
 
-        #if result was found, run pipeline again with it
-        if optimal_params is not None:
+            #if no result, show error
+            if optimal_params is None or optimal_params.empty:
+                messagebox.showerror(
+                    "Optimisation failed",
+                    "Check tickers and time period."
+                )
+
+            #if result was found, run pipeline again with it
             optimal_window = int(optimal_params['z_window'])
             optimal_threshold = optimal_params['z_threshold']
 
-        #rerun backtest w/ optimal params to get equity curve
-        kpm_dict, equity_curve = run_pipeline(
-            tickers=input_tickers,
-            time_period=initial_period,
-            initial_capital=initial_capital,
-            trading_fees=initial_fees,
-            z_window=optimal_window,
-            z_threshold=optimal_threshold
-        )
-
-        if kpm_dict and equity_curve is not None:
-            report_str = (
-                f"Optimal Window: {optimal_window}, Threshold: {optimal_threshold:.2f} | "
-                f"Sharpe: {kpm_dict['sharpe_ratio']:.2f} | "
-                f"Return: {kpm_dict['total_return']:.2f}%"
+            #rerun backtest w/ optimal params to get equity curve
+            kpm_dict, equity_curve = run_pipeline(
+                tickers=input_tickers,
+                time_period=initial_period,
+                initial_capital=initial_capital,
+                trading_fees=initial_fees,
+                z_window=optimal_window,
+                z_threshold=optimal_threshold
             )
-            #plot graph
-            self.plot_frame.plot_graph((report_str, equity_curve))
 
-            #generate detailed report and open in browser
-            title = f"Report for pairs: {input_tickers[0]} & {input_tickers[1]}"
-            create_detailed_report(equity_curve, title)
-            webbrowser.open('file://' + os.path.realpath('report.html'))
+            if kpm_dict and equity_curve is not None:
+                report_str = (
+                    f"Optimal Window: {optimal_window}, Threshold: {optimal_threshold:.2f} | "
+                    f"Sharpe: {kpm_dict['sharpe_ratio']:.2f} | "
+                    f"Return: {kpm_dict['total_return']:.2f}%"
+                )
+                #plot graph
+                self.plot_frame.plot_graph((report_str, equity_curve))
 
-
-        self.control_frame.show_button(True)
+                #generate detailed report and open in browser
+                title = f"Report for pairs: {input_tickers[0]} & {input_tickers[1]}"
+                create_detailed_report(equity_curve, title)
+                webbrowser.open('file://' + os.path.realpath('report.html'))
+        finally:
+            self.control_frame.show_button(True)
 
 
 
