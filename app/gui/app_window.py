@@ -9,6 +9,7 @@ from .plot_frame import PlotFrame
 from app.core.pipeline import run_pipeline
 from app.core.optimiser import run_optimiser
 from app.core.report import create_detailed_report
+from app.core.exceptions import CointegrationError, DataFetchError
 
 
 
@@ -40,48 +41,52 @@ class Application(ttk.Frame):
         #make visible
         self.pack(fill="both", expand=True)
 
-    def handle_run_backtest(self):
-        #hide run button
-        self.control_frame.show_button(False)
-        
+    def _get_validated_inputs(self):
         try:
-            #get user inputs
             input_tickers = self.control_frame.get_tickers()
             backtest_params = self.control_frame.get_backtest_params()
             time_period = backtest_params[0]
             starting_capital = backtest_params[1]
             trading_fees = backtest_params[2]
 
-            #default if user doesn't enter anything
             default_capital = 100000.0
             default_fees = 0.001
             default_period = '10y'
 
-            default_z_window = 60
-            default_z_threshold = 2.0
-
-            try:
-                if starting_capital.strip():
-                    initial_capital = float(starting_capital)
-                else:
-                    initial_capital = default_capital
-            except ValueError:
-                print(f"Invalid capital input {starting_capital}")
+            if starting_capital.strip():
+                initial_capital = float(starting_capital)
+            else:
                 initial_capital = default_capital
         
-            try:
-                if trading_fees.strip():
-                    initial_fees = int(float(trading_fees))
-                else:
-                    initial_fees = default_fees
-            except ValueError:
-                print(f"Invalid fee input {trading_fees}")
+            if trading_fees.strip():
+                initial_fees = float(trading_fees)
+            else:
                 initial_fees = default_fees
         
             if time_period:
                 initial_period = time_period
             else:
                 initial_period = default_period
+
+            return input_tickers, initial_period, initial_capital, initial_fees
+
+        except ValueError:
+            messagebox.showerror("Invalid Input", "Starting capital and trading fees must be numbers.")
+            return None
+
+    def handle_run_backtest(self):
+        #hide run button
+        self.control_frame.show_button(False)
+        
+        try:
+            validated_inputs = self._get_validated_inputs()
+            if validated_inputs is None:
+                return
+
+            input_tickers, initial_period, initial_capital, initial_fees = validated_inputs
+
+            default_z_window = 60
+            default_z_threshold = 2.0
 
             #call pipeliine function
             performance_data = run_pipeline(
@@ -93,15 +98,7 @@ class Application(ttk.Frame):
                 z_threshold=default_z_threshold
             )
 
-            #if pipeline fails, it returns None
-            if performance_data[0] is None:
-                messagebox.showerror(
-                    "Backtest failed",
-                    "This may be due to invalid tickers, no pair cointegration, or no data for the time period."
-                )
-
-            kpm_dict = performance_data[0]
-            equity_curve = performance_data[1]
+            kpm_dict, equity_curve = performance_data
 
             if kpm_dict and equity_curve is not None:
                 #format dict into a str
@@ -113,6 +110,10 @@ class Application(ttk.Frame):
                 #call plot function passing above data as tuple
                 self.plot_frame.plot_graph((report_str, equity_curve))
 
+        except (DataFetchError, CointegrationError) as e:
+            messagebox.showerror("Backtest failed", str(e))
+        except Exception as e:
+            messagebox.showerror("An unexpected error occurred", str(e))
         finally:
             #show button
             self.control_frame.show_button(True)
@@ -122,41 +123,11 @@ class Application(ttk.Frame):
         #disable buttons
         self.control_frame.show_button(False)
         try:
-            #get user inputs
-            input_tickers = self.control_frame.get_tickers()
-            backtest_params = self.control_frame.get_backtest_params()
-            time_period = backtest_params[0]
-            starting_capital = backtest_params[1]
-            trading_fees = backtest_params[2]
+            validated_inputs = self._get_validated_inputs()
+            if validated_inputs is None:
+                return
 
-            #default
-            default_capital = 100000.0
-            default_fees = 0.001
-            default_period = '10y'
-
-            try:
-                if starting_capital.strip():
-                    initial_capital = float(starting_capital)
-                else:
-                    initial_capital = default_capital
-            except ValueError:
-                print(f"Invalid capital input {starting_capital}")
-                initial_capital = default_capital
-        
-            try:
-                if trading_fees.strip():
-                    initial_fees = int(float(trading_fees))
-                else:
-                    initial_fees = default_fees
-            except ValueError:
-                print(f"Invalid fee input {trading_fees}")
-                initial_fees = default_fees
-        
-            if time_period:
-                initial_period = time_period
-            else:
-                initial_period = default_period
-
+            input_tickers, initial_period, initial_capital, initial_fees = validated_inputs
 
             #call optimisation engine
             optimal_params = run_optimiser(
@@ -170,8 +141,9 @@ class Application(ttk.Frame):
             if optimal_params is None or optimal_params.empty:
                 messagebox.showerror(
                     "Optimisation failed",
-                    "Check tickers and time period."
+                    "Could not find optimal parameters. Check tickers and time period."
                 )
+                return
 
             #if result was found, run pipeline again with it
             optimal_window = int(optimal_params['z_window'])
@@ -200,6 +172,11 @@ class Application(ttk.Frame):
                 title = f"Report for pairs: {input_tickers[0]} & {input_tickers[1]}"
                 create_detailed_report(equity_curve, title)
                 webbrowser.open('file://' + os.path.realpath('report.html'))
+        
+        except (DataFetchError, CointegrationError) as e:
+            messagebox.showerror("Optimisation failed", str(e))
+        except Exception as e:
+            messagebox.showerror("An unexpected error occurred", str(e))
         finally:
             self.control_frame.show_button(True)
 
