@@ -1,6 +1,7 @@
 from statsmodels.tsa.stattools import coint
 import numpy as np
 import pandas as pd
+from .exceptions import CointegrationError
 
 
 #Mathematically checks for cointegration between given pairs
@@ -21,8 +22,7 @@ def calculate_spread(
     #if cointegrated, proceed, else halt
     #initial value set to 0,05
     if p_value >= 0.05:
-        print('Pair is not cointegrated.')
-        return (None, None)
+        raise CointegrationError("Pair is not cointegrated.")
 
 
     #calculate hedge ratio by performing linear regression

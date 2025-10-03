@@ -15,15 +15,9 @@ def run_pipeline(
 ) -> tuple:
     #fetch data
     price_data = fetch_data(tickers, time_period)
-    if price_data is None:
-        print("Failed to fetch data.")
-        return (None, None)
     
     #check for cointegration and find spread
     processed_data, hedge_ratio = calculate_spread(price_data)
-    if processed_data is None:
-        print("Pair is not cointegrated.")
-        return (None, None)
     
     #create signals 
     signals_data = create_signals(processed_data, z_window, z_threshold)

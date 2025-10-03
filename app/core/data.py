@@ -1,6 +1,7 @@
 import yfinance as yf 
 import pandas as pd
 import numpy as np
+from .exceptions import DataFetchError
 
 #Acquires relevant data and prepares it into a DataFrame. 
 
@@ -21,8 +22,7 @@ def fetch_data(
             period=time_period
         )
     except Exception as e:
-        print(f"Yfinance encountered an error: {e}");
-        return None
+        raise DataFetchError(f"Yfinance encountered an error: {e}")
     
 
     #isolate closing price data
@@ -30,7 +30,7 @@ def fetch_data(
     
     #check tickers found
     if len(price_data.columns) != 2:
-        return None
+        raise DataFetchError("One or both tickers not found.")
 
     #rename tickers to generic name for consistency
     col_names = { price_data.columns[0]: 'asset1',
