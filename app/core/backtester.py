@@ -11,110 +11,28 @@ def run_backtest(
         trading_fees
         ) -> pd.Series:
     
-    #define starting conditions of portfolio
-    initial_capital = starting_capital
-    cash = initial_capital
-    position = 0 #flat
-    #stores value of portfolio at end of each day
-    equity_list = []
+    #calculate number of shares to hold for each asset based on the signal
+    price_data['asset1_holdings'] = (10000 / price_data['asset1']) * price_data['position']
+    price_data['asset2_holdings'] = -((10000 / price_data['asset1']) * price_data['position']) * hedge_ratio
 
-    asset1_shares = 0
-    asset2_shares = 0
+    #calculate market value of the portfolio for each day
+    price_data['portfolio_value'] = (price_data['asset1_holdings'] * price_data['asset1']) + \
+                                  (price_data['asset2_holdings'] * price_data['asset2'])
 
-    #transaction cost 
-    cost_pct = trading_fees
+    #calculate daily profit and loss of the portfolio
+    price_data['pnl'] = price_data['portfolio_value'].diff()
 
+    #calculate the cost of trading 
+    #trade occurs when the holdings change from the previous day 
+    price_data['asset1_trades'] = price_data['asset1_holdings'].diff()
+    price_data['asset2_trades'] = price_data['asset2_holdings'].diff()
 
-    #simulation loop
-    for index, row in price_data.iterrows():
+    price_data['trading_costs'] = (price_data['asset1_trades'].abs() * price_data['asset1'] * trading_fees) + \
+                                  (price_data['asset2_trades'].abs() * price_data['asset2'] * trading_fees)
 
-        #record daily PnL
-        market_value = (
-            asset1_shares * row['asset1'] +
-            (asset2_shares * row['asset2'])
-        )
-
-        total_equity = cash + market_value
-        equity_list.append(total_equity)
-        
-        #check signal
-        target_pos = row['position']
-
-        #execute trades
-        #initially amount to invest set to 10k
-        if position == 0 and target_pos == 1:
-            #signal for opening long pos
-
-            #determine how many shares to trade
-            nr_asset1_shares =  10000 / row['asset1']
-            nr_asset2_shares = nr_asset1_shares * hedge_ratio
-
-            #update share holdings
-            asset1_shares = nr_asset1_shares
-            asset2_shares = -nr_asset2_shares
-    
-            #update cash 
-            cash -= (asset1_shares * row['asset1'])
-            cash += (nr_asset2_shares * row['asset2'])
-
-            #include trading fees
-            buy_cost = ((asset1_shares * row['asset1']) * cost_pct)
-            sell_cost = ((nr_asset2_shares * row['asset2']) * cost_pct)
-            cash -= (buy_cost + sell_cost)
-
-            #update state 
-            position = 1
-        
-        elif position == 0 and target_pos == -1:
-            #signal for opening short pos, reverse of above
-
-            nr_asset2_shares = 10000 / row['asset2']
-            nr_asset1_shares = nr_asset2_shares * hedge_ratio
-
-            asset1_shares = -nr_asset1_shares
-            asset2_shares = nr_asset2_shares
-
-            cash -= (asset2_shares * row['asset2'])
-            cash += (nr_asset1_shares * row['asset1'])
-            
-            buy_cost = ((asset2_shares * row['asset2']) * cost_pct)
-            sell_cost = ((nr_asset1_shares * row['asset1']) * cost_pct)
-            cash -= (buy_cost + sell_cost)
-            #short position
-            position = -1
-
-        elif position == 1 and target_pos != 1:
-            #close long position
-
-            #liquidate holdings, update vars
-            cash += (asset1_shares * row['asset1'])
-            cash += (asset2_shares * row['asset2'])
-
-            #account for fees
-            sell_cost = ((asset1_shares * row['asset1']) * cost_pct)
-            buy_back_cost = ((abs(asset2_shares) * row['asset2']) * cost_pct)
-            cash -= (sell_cost + buy_back_cost)
-
-            #reset share holdings
-            asset1_shares = 0
-            asset2_shares = 0
-            position = 0
-
-        elif position == -1 and target_pos != -1:
-            #closes short position
-
-            cash += (asset1_shares * row['asset1'])
-            cash += (asset2_shares * row['asset2'])
-
-            sell_cost = ((asset2_shares * row['asset2']) * cost_pct)
-            buy_back_cost = ((abs(asset1_shares) * row['asset1']) * cost_pct)
-            cash -= (sell_cost + buy_back_cost)
-
-            asset1_shares = 0
-            asset2_shares = 0
-            position = 0
-    
-    #convert equity list into series curve
-    equity_curve = pd.Series(data=equity_list, index=price_data.index)
+    #calculate the final equity curve
+    price_data['net_pnl'] = price_data['pnl'] - price_data['trading_costs']
+    equity_curve = starting_capital + price_data['net_pnl'].cumsum()
+    equity_curve.iloc[0] = starting_capital
 
     return equity_curve
