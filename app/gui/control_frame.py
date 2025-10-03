@@ -1,148 +1,84 @@
 from tkinter import *
 from tkinter import ttk
 
-#Frame with user inputs
-
 class ControlFrame(ttk.Frame):
-    #constructor
     def __init__(self, master, run_callback, optimise_callback):
         super().__init__(master)
         self.run_callback = run_callback
         self.optimise_callback = optimise_callback
+        
+        #Define widgets that need to be disabled during run
+        self.disable_widgets = [] 
+
         self.add_widgets()
-        
 
-    #create widgets
     def add_widgets(self):
-        #container for controls
-        widgets_frame = ttk.LabelFrame(self)
-        widgets_frame.grid(
-            row=0, column=0, padx=10, pady=10, sticky="ew"
-        )
-        widgets_frame.columnconfigure(0, weight=1)
-        widgets_frame.columnconfigure(1, weight=1)
-
-        tickers_frame = ttk.Frame(widgets_frame)
-        tickers_frame.grid(row=0, column=0, sticky="nsew")
-        tickers_frame.columnconfigure(1, weight=1)
-        #add widgets
-        #tickers
-        ticker_1_label = ttk.Label(tickers_frame, text="Ticker 1:")
-        self.ticker_1_entry = ttk.Entry(tickers_frame)
-        ticker_2_label = ttk.Label(tickers_frame, text="Ticker 2:")
-        self.ticker_2_entry = ttk.Entry(tickers_frame)
-
-        #geometry 
-        ticker_1_label.grid(
-            row=0, column=0,
-            padx=5, pady=5, sticky='w'
-        )
-        self.ticker_1_entry.grid(
-            row=0, column=1,
-            padx=5, pady=5, sticky="ew"
-        )
-        ticker_2_label.grid(
-            row=1, column=0,
-            padx=5, pady=5, sticky='w'
-        )
-        self.ticker_2_entry.grid(
-            row=1, column=1,
-            padx=5, pady=5, sticky="ew"
-        )
-        
-
-        #other options
-        params_frame = ttk.Frame(widgets_frame)
-        params_frame.grid(row=0, column=1, sticky="nsew")
+        #Parameters frame
+        params_frame = ttk.LabelFrame(self, text="Trade Parameters", padding=(10, 5))
+        params_frame.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
         params_frame.columnconfigure(1, weight=1)
 
-        self.time_period_entry = ttk.Combobox(
-            params_frame,
-            values=['5y', '10y', '15y', '20y']
-        )
+        #Tickers
+        tickers_label = ttk.Label(params_frame, text="Ticker Pair:")
+        tickers_label.grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        self.tickers_entry = ttk.Entry(params_frame)
+        self.tickers_entry.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        self.tickers_entry.insert(0, "AAPL, MSFT")
+        self.disable_widgets.append(self.tickers_entry)
+
+        #time period
         time_period_label = ttk.Label(params_frame, text="Time Period:")
-        capital_label = ttk.Label(params_frame, text="Starting Capital:")
-        self.capital_entry = ttk.Entry(params_frame)
-        fees_label = ttk.Label(params_frame, text="Trading Fees:")
-        self.fees_entry = ttk.Entry(params_frame)
+        time_period_label.grid(row=1, column=0, padx=5, pady=5, sticky="w")
+        self.time_period_entry = ttk.Combobox(params_frame, values=['5y', '10y', '15y', '20y'])
+        self.time_period_entry.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
+        self.time_period_entry.set('10y')
+        self.disable_widgets.append(self.time_period_entry)
 
-        time_period_label.grid(
-            row=0, column=0, sticky='w',
-            padx=5, pady=5
-        )
-        self.time_period_entry.grid(
-            row=0, column=1, sticky='ew',
-            padx=5, pady=5
-        )
-        capital_label.grid(
-            row=1, column=0, sticky='w',
-            padx=5, pady=5
-        )
-        self.capital_entry.grid(
-            row=1, column=1, sticky='ew',
-            padx=5, pady=5
-        )
+        # Config frame
+        config_frame = ttk.LabelFrame(self, text="Backtest Configuration", padding=(10, 5))
+        config_frame.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
+        config_frame.columnconfigure(1, weight=1)
+
+        #starting capital
+        capital_label = ttk.Label(config_frame, text="Starting Capital:")
+        capital_label.grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        self.capital_entry = ttk.Entry(config_frame)
+        self.capital_entry.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
         self.capital_entry.insert(0, "100000")
-        fees_label.grid(
-            row=2, column=0, sticky='w',
-            padx=5, pady=5
-        )
-        self.fees_entry.grid(
-            row=2, column=1, sticky='ew',
-            padx=5, pady=5
-        )
+        self.disable_widgets.append(self.capital_entry)
+
+        #Trading fees
+        fees_label = ttk.Label(config_frame, text="Trading Fees:")
+        fees_label.grid(row=1, column=0, padx=5, pady=5, sticky="w")
+        self.fees_entry = ttk.Entry(config_frame)
+        self.fees_entry.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
         self.fees_entry.insert(0, "0.001")
-        
+        self.disable_widgets.append(self.fees_entry)
 
-        #buttons
-        button_frame = ttk.Frame(widgets_frame)
-        button_frame.grid(
-            row=1, columnspan=2, pady=10
-        )
+        #Execution frame
+        button_frame = ttk.Frame(self)
+        button_frame.grid(row=2, column=0, pady=10)
 
-        self.run_button = ttk.Button(
-            button_frame,
-            text="Run Backtest",
-            command=self.run_callback
-        )
+        self.run_button = ttk.Button(button_frame, text="Run Backtest", command=self.run_callback)
         self.run_button.pack(side="left", padx=5)
+        self.disable_widgets.append(self.run_button)
 
-        self.optimise_button = ttk.Button(
-            button_frame,
-            text="Run Optimisation",
-            command=self.optimise_callback
-        )
+        self.optimise_button = ttk.Button(button_frame, text="Run Optimisation", command=self.optimise_callback)
         self.optimise_button.pack(side="left", padx=5)
+        self.disable_widgets.append(self.optimise_button)
 
-    
-
-
-
-    #get str value of tickers inputted by user
     def get_tickers(self) -> tuple:
-        ticker1 = self.ticker_1_entry.get()
-        ticker2 = self.ticker_2_entry.get()
-        return (ticker1, ticker2)
-    
-    #disable button
-    def show_button(self, state: bool):
-        if state is False:
-            self.run_button.config(state="disabled")
-            self.optimise_button.config(state="disabled")
-        elif state is True:
-            self.run_button.config(state="normal")
-            self.optimise_button.config(state="normal")
-    
-    #get backtest params input
+        tickers_str = self.tickers_entry.get()
+        tickers = [ticker.strip() for ticker in tickers_str.split(',')]
+        return tuple(tickers)
+
+    def set_controls_enabled(self, enabled: bool):
+        state = "normal" if enabled else "disabled"
+        for widget in self.disable_widgets:
+            widget.config(state=state)
+
     def get_backtest_params(self) -> tuple:
-        time_period: str = self.time_period_entry.get()
+        time_period = self.time_period_entry.get()
         starting_capital = self.capital_entry.get()
         trading_fees = self.fees_entry.get()
         return (time_period, starting_capital, trading_fees)
-    
-        
-
-
-
-
-

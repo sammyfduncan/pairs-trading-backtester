@@ -21,6 +21,11 @@ class Application(ttk.Frame):
         #call parent constructor
         super().__init__(master)
         self.master.title("Pairs Trading Backtester")
+
+        #set theme
+        style = ttk.Style(self.master)
+        style.theme_use('clam')
+
         #create component frames
         self.control_frame = ControlFrame(
             self,
@@ -44,6 +49,10 @@ class Application(ttk.Frame):
     def _get_validated_inputs(self):
         try:
             input_tickers = self.control_frame.get_tickers()
+            if len(input_tickers) != 2:
+                messagebox.showerror("Invalid Tickers", "Please provide exactly two tickers, separated by a comma.")
+                return None
+
             backtest_params = self.control_frame.get_backtest_params()
             time_period = backtest_params[0]
             starting_capital = backtest_params[1]
@@ -75,8 +84,7 @@ class Application(ttk.Frame):
             return None
 
     def handle_run_backtest(self):
-        #hide run button
-        self.control_frame.show_button(False)
+        self.control_frame.set_controls_enabled(False)
         
         try:
             validated_inputs = self._get_validated_inputs()
@@ -115,13 +123,11 @@ class Application(ttk.Frame):
         except Exception as e:
             messagebox.showerror("An unexpected error occurred", str(e))
         finally:
-            #show button
-            self.control_frame.show_button(True)
+            self.control_frame.set_controls_enabled(True)
 
     #handles calls to optimisation function
     def handle_run_optimisation(self):
-        #disable buttons
-        self.control_frame.show_button(False)
+        self.control_frame.set_controls_enabled(False)
         try:
             validated_inputs = self._get_validated_inputs()
             if validated_inputs is None:
@@ -178,7 +184,7 @@ class Application(ttk.Frame):
         except Exception as e:
             messagebox.showerror("An unexpected error occurred", str(e))
         finally:
-            self.control_frame.show_button(True)
+            self.control_frame.set_controls_enabled(True)
 
 
 
